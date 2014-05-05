@@ -15,18 +15,34 @@ __author__ = 'anthonylim'
 # C = Club, D = Diamond, H = Heart, S = Space
 # ####################
 
+import random
 
 def main():
+    global deck
     deck = populate_deck()
-    print deck
 
-    hand = ["2C", "3C", "4C", "5C", "6C"]
-    hand2 = ["TC", "JD", "QD", "KD", "AC"]
-    hand3 = ["JC", "TC", "KC", "QC", "AC"]
+    ### TESTING ###
+    hand = ["JC", "TC", "KC", "QC", "AC"]       # straightflush
+    hand2 = ["5C", "5D", "8C", "5S", "5H"]      # fourofakind
+    hand3 = ["AH", "AS", "3C", "3H", "AD"]      # fullhouse
+    hand4 = ["2H", "TH", "8H", "KH", "5H"]      # flush
+    hand5 = ["5C", "9H", "8H", "6D", "7S"]      # straight
+    hand6 = ["7C", "9H", "KH", "7D", "7S"]      # threeofakind
+    hand7 = ["9C", "JC", "3S", "9D", "JS"]      # twopair
+    hand8 = ["TD", "4S", "TH", "2H", "AD"]      # pair
+    hand9 = ["TD", "4S", "9H", "2H", "AD"]      # highcard
 
-   # rankpokerhand(hand)
-    rankpokerhand(hand2)
-    #rankpokerhand(hand3)
+    #print hand_string(rankpokerhand(hand))
+    #print hand_string(rankpokerhand(hand2))
+    #print hand_string(rankpokerhand(hand3))
+    #print hand_string(rankpokerhand(hand4))
+    #print hand_string(rankpokerhand(hand5))
+    #print hand_string(rankpokerhand(hand6))
+    #print hand_string(rankpokerhand(hand7))
+    #print hand_string(rankpokerhand(hand8))
+    #print hand_string(rankpokerhand(hand9))
+
+    monte_carlo(50000)
 
     return
 
@@ -35,6 +51,137 @@ def rankpokerhand(hand):
         print "Error: Hand passed not proper length"
         return
 
+    hmap = build_suit_dict(hand)
+    rmap = build_rank_dict(hand)
+
+    sorted_hand = []
+    sorted_hand_numeric = []
+
+    # Append the rank in the card
+    for ele in hand:
+        sorted_hand.append(ele[0])
+
+    # Convert that into a number
+    for ele in sorted_hand:
+        sorted_hand_numeric.append(get_card_order(ele))
+
+    # Sort the hand so that arbitrary orders of hands can be checked
+    sorted_hand_numeric.sort()
+
+    # **** Straight Flush
+    # If 5 of a single suit, straight flush
+    if (hmap["club"] or hmap["diamond"] or hmap["heart"] or hmap["spade"]) == 5:
+        sf = 0
+        for i in range(len(sorted_hand_numeric)-1):
+            curr_minus_next = sorted_hand_numeric[i+1] - sorted_hand_numeric[i]
+            if curr_minus_next == 1:
+                sf += 1
+                continue
+            else:
+                break
+        if sf == 4:
+            return 1
+
+
+    # **** Four of a Kind
+    # If 4 of a single rank, four of a kind
+    for ele in rmap:
+        if rmap.get(ele) == 4:
+            return 2
+
+    # **** Full House
+    for ele in rmap:
+        if rmap.get(ele) == 3:
+            for i in rmap:
+                if rmap.get(i) == 2:
+                    return 3
+
+    # **** Flush
+    if (hmap["club"] or hmap["diamond"] or hmap["heart"] or hmap["spade"]) == 5:
+        return 4
+
+    # **** Straight
+    straight = 0
+    for i in range(len(sorted_hand_numeric) - 1):
+        curr_minus_next = sorted_hand_numeric[i + 1] - sorted_hand_numeric[i]
+        if curr_minus_next == 1:
+            straight += 1
+            continue
+        else:
+            break
+    if straight == 4:
+        return 5
+
+    # **** Three of a Kind
+    for ele in rmap:
+        if rmap.get(ele) == 3:
+            # Check if there's not a pair by seeing if there's a 1
+            for j in rmap:
+                if rmap.get(j) == 1:
+                    return 6
+
+    # **** Two Pair && Pair
+    pairs = 0
+    values = rmap.values()
+    for ele in values:
+        if ele == 2:
+            pairs += 1
+
+    if pairs == 2:
+        return 7
+    elif pairs == 1:
+        return 8
+
+    # **** High Card
+    return 9
+
+def build_rank_dict(hand):
+    rmap = dict()
+
+    # Initialize from 1 to 9
+    for i in range(1, 10):
+        rmap["{0}".format(i)] = 0
+
+    rmap["T"] = 0
+    rmap["J"] = 0
+    rmap["Q"] = 0
+    rmap["K"] = 0
+    rmap["A"] = 0
+
+    # Count number of each rank in the hand
+    for ele in hand:
+        if ele[0] == "1":
+            rmap["1"] += 1
+        if ele[0] == "2":
+            rmap["2"] += 1
+        if ele[0] == "3":
+            rmap["3"] += 1
+        if ele[0] == "4":
+            rmap["4"] += 1
+        if ele[0] == "5":
+            rmap["5"] += 1
+        if ele[0] == "6":
+            rmap["6"] += 1
+        if ele[0] == "7":
+            rmap["7"] += 1
+        if ele[0] == "8":
+            rmap["8"] += 1
+        if ele[0] == "9":
+            rmap["9"] += 1
+        if ele[0] == "T":
+            rmap["T"] += 1
+        if ele[0] == "J":
+            rmap["J"] += 1
+        if ele[0] == "Q":
+            rmap["Q"] += 1
+        if ele[0] == "K":
+            rmap["K"] += 1
+        if ele[0] == "A":
+            rmap["A"] += 1
+
+    return rmap
+
+def build_suit_dict(hand):
     hmap = dict()
     hmap["club"] = 0
     hmap["diamond"] = 0
@@ -52,48 +199,21 @@ def rankpokerhand(hand):
         if ele[1] == 'S':
             hmap["spade"] += 1
 
-    sorted_hand = []
-    sorted_hand_numeric = []
+    return hmap
 
-    # Append the rank in the card
-    for ele in hand:
-        sorted_hand.append(ele[0])
+def build_percentages_dict():
+    pmap = dict()
+    pmap["straightflush"] = 0   # straightflush
+    pmap["fourofakind"] = 0     # fourofakind
+    pmap["fullhouse"] = 0       # fullhouse
+    pmap["flush"] = 0           # flush
+    pmap["straight"] = 0        # straight
+    pmap["threeofakind"] = 0    # threeofakind
+    pmap["twopair"] = 0         # twopair
+    pmap["pair"] = 0            # pair
+    pmap["highcard"] = 0        # highcard
 
-    # Convert that into a number
-    for ele in sorted_hand:
-        sorted_hand_numeric.append(get_card_order(ele))
-
-    # Sort the hand so that arbitrary orders of hands can be checked
-    sorted_hand_numeric.sort()
-
-    # If 5 of a single suit, straight flush
-    if (hmap["club"] or hmap["diamond"] or hmap["heart"] or hmap["spade"]) == 5:
-
-        for i in range(len(sorted_hand_numeric)-1):
-            if sorted_hand_numeric[i+1] - sorted_hand_numeric[i] == 1:
-                continue
-            else:
-                break
-
-        print "straightflush"
-        return 1
-
-    # If 4 of a single suit, four of a kind
-    if (hmap["club"] or hmap["diamond"] or hmap["heart"] or hmap["spade"]) == 4:
-        print "fourofakind"
-        #return 2
-
-    # Full House
-    for ele in hmap:
-        if hmap.get(ele) == 3:
-            for i in hmap:
-                if hmap.get(i) == 2:
-                    # return 3
-                    print "fullhouse"
-
-    # Straight
-
-    return
+    return pmap
 
 def get_card_order(val):
     if val == "1":
@@ -126,9 +246,36 @@ def get_card_order(val):
         return 14
 
 def hand_string(rank):
-    return
+    if rank == 1:
+        return "straightflush"
+    if rank == 2:
+        return "fourofakind"
+    if rank == 3:
+        return "fullhouse"
+    if rank == 4:
+        return "flush"
+    if rank == 5:
+        return "straight"
+    if rank == 6:
+        return "threeofakind"
+    if rank == 7:
+        return "twopair"
+    if rank == 8:
+        return "pair"
+    if rank == 9:
+        return "highcard"
+
+    print deck[rank]
 
 def monte_carlo(num_hands):
+    pmap = build_percentages_dict()
+    for i in range(num_hands):
+        hand = random.sample(deck, 5)
+        pmap[hand_string(rankpokerhand(hand))] += 1
+
+    for ele in pmap:
+        print '{0:18s} : {1:.2f}%'.format(ele, (float(pmap.get(ele)) / num_hands)*100)
+
     return
 
 def populate_deck():
@@ -142,5 +289,5 @@ def populate_deck():
 
     return deck
 
-
-main()
+if __name__ == "__main__":
+    main()
