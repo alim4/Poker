@@ -4,7 +4,7 @@ __author__ = 'anthonylim'
 # alim4@ucsc.edu
 #
 # CMPS 5P, Spring 2014
-# Assignment 3
+# Assignment 4
 #
 # Poker
 # ###################
@@ -42,7 +42,7 @@ def main():
     #print hand_string(rankpokerhand(hand8))
     #print hand_string(rankpokerhand(hand9))
 
-    monte_carlo(50000)
+    monte_carlo(10000)
 
     return
 
