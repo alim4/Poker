@@ -18,9 +18,6 @@ __author__ = 'anthonylim'
 import random
 
 def main():
-    global deck
-    deck = populate_deck()
-
     ### TESTING ###
     hand = ["JC", "TC", "KC", "QC", "AC"]       # straightflush
     hand2 = ["5C", "5D", "8C", "5S", "5H"]      # fourofakind
@@ -246,6 +243,7 @@ def get_card_order(val):
         return 14
 
 def hand_string(rank):
+    deck = populate_deck()
     if rank == 1:
         return "straightflush"
     if rank == 2:
@@ -268,6 +266,7 @@ def hand_string(rank):
     print deck[rank]
 
 def monte_carlo(num_hands):
+    deck = populate_deck()
     pmap = build_percentages_dict()
     for i in range(num_hands):
         hand = random.sample(deck, 5)
